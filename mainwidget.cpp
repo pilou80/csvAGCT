@@ -213,7 +213,7 @@ void mainWidget::on_buttonExportCSV_clicked()
             {
                 if(line.count() != 0)
                     line += ";";
-                line.append(french.toString(m_mutations.at(indexPositionMutation)->percent.at(indexPositionPatient)));
+                line.append(french.toString(m_mutations.at(indexPositionMutation)->percent.at(indexPositionPatient)/(float)100.0));
             }
             if(m_patients.at(indexPositionPatient)->success)
                 line += ";1";
