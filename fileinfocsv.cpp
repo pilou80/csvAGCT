@@ -17,8 +17,37 @@ fileInfoCsv::fileInfoCsv(QString fileName, QWidget *parent) :
         if(file.open(QFile::ReadOnly))
         {
             qDebug() << "file open";
-            foreach(QByteArray bytesLine, file.readAll().split('\n'))
+            QByteArray fileRead = file.readAll();
+            char style = '\n';
+            for(int index=0;index<fileRead.count()-1;index++)
             {
+                if( fileRead.at(index) == '\r')
+                {
+                     if(fileRead.at(index+1) == '\n')
+                     {
+                         qDebug() << "endline windows style";
+                         style = '\n';
+                         break;
+                     }
+                     else
+                     {
+                         qDebug() << "endline mac style";
+                         style = '\r';
+                         break;
+                     }
+                }
+
+            }
+            foreach(QByteArray bytesLine, fileRead.split(style))
+            {
+                if(style == '\r')
+                    bytesLine.append('\r');
+                if(bytesLine.count())
+                {
+                        //qDebug() << bytesLine.at(0);
+                if(bytesLine.at(0) == '\r')
+                    bytesLine = bytesLine.remove(0,1);
+                }
                 QStringList splitted;
                 QString stringLine = QString(bytesLine);
                 bool inAQuote = false;
