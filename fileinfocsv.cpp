@@ -4,6 +4,9 @@
 #include <QDebug>
 #include <QString>
 
+#define colonneAminoAcidChangeIndex 8
+#define colonneNameIndex 0
+
 fileInfoCsv::fileInfoCsv(QString fileName, QWidget *parent) :
     QWidget(parent),
     ui(new Ui::fileInfoCsv)
@@ -12,6 +15,7 @@ fileInfoCsv::fileInfoCsv(QString fileName, QWidget *parent) :
     ui->labelFilename->setText("Error");
     m_filename = fileName;
     QFile file(m_filename);
+    ui->checkBox->setChecked(true);
     if(file.exists())
     {
         if(file.open(QFile::ReadOnly))
@@ -59,7 +63,7 @@ fileInfoCsv::fileInfoCsv(QString fileName, QWidget *parent) :
                     {
                         inAQuote = !inAQuote;
                     }
-                    else if(stringLine.at(i) == ',')
+                    else if(stringLine.at(i) == ';')
                     {
                         if(!inAQuote)
                         {
@@ -76,11 +80,11 @@ fileInfoCsv::fileInfoCsv(QString fileName, QWidget *parent) :
                 if(currentSplit.count()!=0)
                     splitted.append(currentSplit);
                 m_dataLines.append(splitted);
-                //m_dataLines.append(QString(bytesLine).split(QChar(',')));
             }
+
             ui->labelFilename->setText(fileName);
             ui->label_LinesCount->setText(QString::number(m_dataLines.count()));
-            ui->checkBox->setChecked(true);
+
             file.close();
         }
         else
@@ -129,47 +133,27 @@ void fileInfoCsv::analyseFile()
             qDebug() << "no succes line !";
         }
     }
+
+
+        //qDebug() << "line first:" << m_dataLines.at(0);
     //Supprimer index
     if(m_dataLines.count()>0)
         m_dataLines.removeFirst();
-    qDebug() << "=======================";
-    qDebug() << "before=================" << m_dataLines.count();
+    qDebug() << "analysis " << this->m_filename;
+    //qDebug() << "before=================" << m_dataLines.count();
     /*for(int i=0;i<20;i++)
     {
         qDebug() << "line " << i << " name: " << m_dataLines.at(i).first();
     }*/
-    /*qDebug() << "=======================";
-    qSort(m_dataLines.begin(), m_dataLines.end(), sortList);
-    qDebug() << "sorted";
-    for(int i=0;i<20;i++)
-    {
-        qDebug() << "line " << i << " name: " << m_dataLines.at(i).first();
-    }*/
-    for(int i=0;i<(m_dataLines.count()-1);i++)
-    {
-        //qDebug() << "comp Line " << i;
-        if(compLines(m_dataLines.at(i), m_dataLines.at(i+1)))
-        {
-            m_dataLines.removeAt(i);
-            i--;
-        }
-    }
-    ui->label_LinesCountWithoutDoubles->setText(QString::number(m_dataLines.count()));
-    /*qDebug() << "=double removed=================" << m_dataLines.count();
-    for(int i=0;i<20;i++)
-    {
-        qDebug() << "line " << i << " name: " << m_dataLines.at(i).first();
-    }
-    qDebug() << "=================";*/
-    QString currentBase;
-    for(int i=0; i<m_dataLines.count() ;i++)
-    {
-        if(m_dataLines.at(i).count() >=14)
-        {
-            if(m_dataLines.at(i).count() >=15)
-            {
 
-            }
+    ui->label_LinesCountWithoutDoubles->setText(QString::number(m_dataLines.count()));
+
+    QString currentBase;
+    /*for(int i=0; i<m_dataLines.count() ;i++)
+    {
+
+        if(m_dataLines.at(i).count() >=17)
+        {
             if(m_dataLines.at(i).at(1) == "modified_base")
             {
                 currentBase = m_dataLines.at(i).at(0);
@@ -178,11 +162,11 @@ void fileInfoCsv::analyseFile()
                     (m_dataLines.at(i).at(6).count() != 0))
             {
                 QChar morph;
-                if(m_dataLines.at(i).at(6).count() == 6)
+                if(m_dataLines.at(i).at(8).count() == 6)
                 {
-                    morph = m_dataLines.at(i).at(6).at(5);
+                    morph = m_dataLines.at(i).at(8).at(5);
                 }
-                QStringList percentConv = m_dataLines.at(i).at(14).split('\%'); //1.4%
+                QStringList percentConv = m_dataLines.at(i).at(15).split('\%'); //1.4%
                 float percent = -1;
                 if(percentConv.count() >= 2)
                 {
@@ -193,7 +177,6 @@ void fileInfoCsv::analyseFile()
                     if(percentConv.count() == 3)
                     {
                         QStringList percentConv2 = percentConv.at(1).split(' ');
-                        //qDebug() << "percentConv2 :" << percentConv2;
                         if(percentConv2.count() == 3 &&
                            percent != -1)
                         {
@@ -205,12 +188,73 @@ void fileInfoCsv::analyseFile()
                     }
                 }
 
-                qDebug() << "found :" << currentBase << morph << m_dataLines.at(i).at(14) << percent;
+                //qDebug() << "found :" << currentBase << morph << m_dataLines.at(i).at(14) << percent;
                 emit(newMutation(m_filename, currentBase+morph, percent, succes));
             }
+            else
+                qDebug() << "not found line " << i;
         }
-    }
+        else
+            qDebug() << "Error m_dataLines.at(i).count() == " << m_dataLines.at(i).count();
+    }*/
 
+    for(int i=0; i<m_dataLines.count() ;i++)
+    {
+        if(m_dataLines.at(i).count() >=17)
+        {
+            //Il faut trouver la modified_base correspondante à ce polymorphisme
+            if(m_dataLines.at(i).at(colonneAminoAcidChangeIndex).count() == 6) //6 => ex "M -> V"
+            {
+                currentBase = m_dataLines.at(i).at(colonneAminoAcidChangeIndex).at(0); //On récupere le M qu'il faut aller chercher dans modified_base
+                QChar morph = m_dataLines.at(i).at(colonneAminoAcidChangeIndex).at(5);
+                QStringList percentConv = m_dataLines.at(i).at(15).split('\%'); //1.4%
+                float percent = -1;
+                if(percentConv.count() >= 2)
+                {
+                    bool ok;
+                    percent = percentConv.at(0).toFloat(&ok);
+                    if(!ok)
+                        percent = -1;
+                    if(percentConv.count() == 3)
+                    {
+                        QStringList percentConv2 = percentConv.at(1).split(' ');
+                        if(percentConv2.count() == 3 &&
+                           percent != -1)
+                        {
+                            bool ok;
+                            percent = (percent + percentConv2.at(2).toFloat(&ok))/2;
+                            if(!ok)
+                                percent = -1;
+                        }
+                    }
+                }
+
+                for(int rewindCount=i-1;
+                        rewindCount>=0;
+                        rewindCount--)
+                {
+                    if(m_dataLines.at(rewindCount).at(colonneNameIndex).count() == 0)
+                    {
+                        qDebug() << "Problème => Fichier " << m_filename << "  ligne " << i << " colonne Name vide!";
+                        break;
+                    }
+                    else if(m_dataLines.at(rewindCount).at(colonneNameIndex).count() >= 2 && //On vérifie qu'il y à potentielment un chiffre après la lettre
+                            m_dataLines.at(rewindCount).at(colonneNameIndex).at(0) == currentBase)
+                    {
+                        if(m_dataLines.at(rewindCount).at(colonneNameIndex).at(1).isDigit())
+                        {
+                            currentBase = m_dataLines.at(rewindCount).at(colonneNameIndex);
+                            emit(newMutation(m_filename, currentBase+morph, percent, succes));
+                            break;//exit the for rewindCount
+                        }
+                    }
+                }
+
+            }
+        }
+        else
+            qDebug() << "Error m_dataLines.at(" << i <<  ").count() == " << m_dataLines.at(i).count();
+    }
 
 
 }

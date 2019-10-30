@@ -14,12 +14,6 @@ mainWidget::mainWidget(QWidget *parent) :
 {
     ui->setupUi(this);
     ui->tabWidget->setCurrentIndex(0);
-
-    mutationInfo_t test1, test2;
-    test1.name = "A140B";
-    test2.name = "A141C";
-
-    qDebug() << test1.name << "<" << test2.name << "=>" << mutationLowerThan(&test1, &test2);
 }
 
 mainWidget::~mainWidget()
@@ -68,6 +62,7 @@ void mainWidget::on_buttonAnalyse_clicked()
 
 void mainWidget::handleNewMutation(QString filename, QString positionMutation, float percentValue, bool success)
 {
+    //qDebug() << "handleNewMutation " << positionMutation << "  =>" << percentValue;
     //Search the index of the mutation
     int indexPositionMutation;
     for(indexPositionMutation=0;
@@ -89,7 +84,7 @@ void mainWidget::handleNewMutation(QString filename, QString positionMutation, f
     }
 
     //Search for the patient
-    bool found;
+    bool found = false;
     /*foreach(patientInfo_t *patient, m_patients)
     {
         if(addMutationOnPatient)
@@ -133,9 +128,9 @@ void mainWidget::handleNewMutation(QString filename, QString positionMutation, f
         }
     }
 
-    m_mutations.at(indexPositionMutation)->percent.replace(indexPositionPatient, percentValue);
+    m_mutations.at(indexPositionMutation)->percent.replace(indexPositionPatient, percentValue+m_mutations.at(indexPositionMutation)->percent.at(indexPositionPatient));
 
-    qDebug() << m_patients.count() << m_mutations.count();
+    //qDebug() << m_patients.count() << m_mutations.count();
     ui->label_mutationCount->setText(QString::number(m_mutations.count()));
 }
 
@@ -175,18 +170,22 @@ void mainWidget::on_buttonExportCSV_clicked()
 {
     QFile fileExport(m_basePath+"/export.csv");
 
-    QString debugLine;
+    /*QString debugLine;
     for(int i=0;i<30;i++)
         debugLine += m_mutations.at(i)->name + QString("|");
-    qDebug() << "before" << debugLine;
-    qSort(m_mutations.begin(), m_mutations.end(), mutationLowerThan);
-    debugLine.clear();
-    for(int i=0;i<30;i++)
-        debugLine += m_mutations.at(i)->name + QString("|");
-    qDebug() << "before" << debugLine;
+    qDebug() << "before" << debugLine;*/
 
+    qSort(m_mutations.begin(), m_mutations.end(), mutationLowerThan);
+
+    /*debugLine.clear();
+    for(int i=0;i<30;i++)
+        debugLine += m_mutations.at(i)->name + QString("|");
+    qDebug() << m_basePath<<"/export.csv" << "after" << debugLine;*/
+
+    //qSort(m_mutations.begin(), m_mutations.end(), mutationLowerThan);
     if(fileExport.open(QFile::WriteOnly))
     {
+        qDebug() << "fileExport " << fileExport.fileName();
         QString line;
         line += "ID";
         foreach(mutationInfo_t *mutation, m_mutations)
@@ -195,8 +194,9 @@ void mainWidget::on_buttonExportCSV_clicked()
                 line += ";";
             line += mutation->name;
         }
-        line.remove(line.count()-1);
-        line += 'outcome\n';
+        //line.remove(line.count()-1);
+
+        line += ";outcome\n";
         fileExport.write(line.toLocal8Bit());
 
         QLocale french(QLocale::French);
@@ -223,5 +223,6 @@ void mainWidget::on_buttonExportCSV_clicked()
             fileExport.write(line.toLocal8Bit());
         }
         fileExport.close();
+        qDebug() << "close";
     }
 }
