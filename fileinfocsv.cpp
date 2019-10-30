@@ -116,6 +116,19 @@ bool compLines(const QStringList a, const QStringList b)
 
 void fileInfoCsv::analyseFile()
 {
+    bool succes = false;
+    if(m_dataLines.count())
+    {
+        if(m_dataLines.at(0).count()>=17)
+        {
+            if(m_dataLines.at(0).at(16) == "succes\r")
+               succes = true;
+        }
+        else
+        {
+            qDebug() << "no succes line !";
+        }
+    }
     //Supprimer index
     if(m_dataLines.count()>0)
         m_dataLines.removeFirst();
@@ -193,7 +206,7 @@ void fileInfoCsv::analyseFile()
                 }
 
                 qDebug() << "found :" << currentBase << morph << m_dataLines.at(i).at(14) << percent;
-                emit(newMutation(m_filename, currentBase+morph, percent, false));
+                emit(newMutation(m_filename, currentBase+morph, percent, succes));
             }
         }
     }

@@ -196,7 +196,7 @@ void mainWidget::on_buttonExportCSV_clicked()
             line += mutation->name;
         }
         line.remove(line.count()-1);
-        line += '\n';
+        line += 'outcome\n';
         fileExport.write(line.toLocal8Bit());
 
         QLocale french(QLocale::French);
@@ -215,6 +215,10 @@ void mainWidget::on_buttonExportCSV_clicked()
                     line += ";";
                 line.append(french.toString(m_mutations.at(indexPositionMutation)->percent.at(indexPositionPatient)));
             }
+            if(m_patients.at(indexPositionPatient)->success)
+                line += ";1";
+            else
+                line += ";0";
             line += '\n';
             fileExport.write(line.toLocal8Bit());
         }
